@@ -15,7 +15,7 @@ from PIL import Image
 # CONFIGURATION
 # =========================
 st.set_page_config(page_title="PDF Decision Extractor", layout="wide")
-CHUNK_SIZE = 3000  # characters, approximate
+CHUNK_SIZE = 1000  # characters, approximate
 OVERLAP_SIZE = 200  # characters to overlap between chunks
 MODEL = "gpt-3.5-turbo"
 
