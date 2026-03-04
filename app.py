@@ -62,38 +62,28 @@ def extract_text_with_ocr(pdf_file):
         return ""
 
 def chunk_text(text, chunk_size=CHUNK_SIZE, overlap=OVERLAP_SIZE):
-    """Split text into paragraph-based chunks with overlap."""
-    paragraphs = text.split("\n\n")  # simple paragraph split
+    """Try paragraphs first, fallback to character count."""
+    paragraphs = text.split("\n\n")
+    
+    # If we have real paragraphs, use them
+    if len(paragraphs) > 1:
+        chunks = []
+        current_chunk = ""
+        for para in paragraphs:
+            if len(current_chunk) + len(para) > chunk_size:
+                if current_chunk:
+                    chunks.append(current_chunk)
+                current_chunk = para
+            else:
+                current_chunk += "\n\n" + para if current_chunk else para
+        if current_chunk:
+            chunks.append(current_chunk)
+        return chunks
+    
+    # No paragraphs — force chunk by character count
     chunks = []
-    current_chunk = ""
-    
-    for para in paragraphs:
-        para = para.strip()
-        if not para:
-            continue
-        
-        # If adding this paragraph would exceed chunk size
-        if len(current_chunk) + len(para) + 2 > chunk_size:
-            # Save current chunk if it exists
-            if current_chunk.strip():
-                chunks.append(current_chunk.strip())
-            
-            # Start new chunk with overlap from previous chunk
-            if chunks:  # If there was a previous chunk
-                overlap_text = chunks[-1][-overlap:] if len(chunks[-1]) > overlap else chunks[-1]
-                current_chunk = overlap_text + "\n\n" + para
-            else:
-                current_chunk = para
-        else:
-            if current_chunk:
-                current_chunk += "\n\n" + para
-            else:
-                current_chunk = para
-    
-    # Add the last chunk if it exists
-    if current_chunk.strip():
-        chunks.append(current_chunk.strip())
-    
+    for i in range(0, len(text), chunk_size - overlap):
+        chunks.append(text[i:i + chunk_size])
     return chunks
 
 # =========================
